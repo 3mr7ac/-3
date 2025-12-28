@@ -4,10 +4,8 @@ SELECT
 		 c."First Owner Assigned Date",
 		 COUNT(st."Id") AS "Total Records",
          
-		 SUM(CASE
-				 WHEN st."Status"  = 'NR' THEN 1
-				 ELSE 0
-			 END) AS "Total NR Count",
+		 ROUND(SUM(CASE WHEN st."Status" = 'NR' THEN 1 ELSE 0 END) / 3.0, 2) AS "Total NR Count (Divided)",
+         
 		 MIN(CASE
 				 WHEN st."Status"  = 'NR' THEN st."Call Date and Time"
 			 END) AS "First NR Time",
