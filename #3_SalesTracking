@@ -4,93 +4,56 @@ SELECT
 		 c."Stage" as "Stage",
 		 c."Lead Create Time" AS "Virgin Lead Time",
 		 COUNT(st."Id") AS "Total Records",
-		 ROUND(SUM(CASE
-				 WHEN st."Status"  = 'NR' THEN 1
-				 ELSE 0
-			 END) / 3.0, 2) AS "Total NR Count (Divided)",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'NR' THEN st."Call Date and Time"
-			 END), MAX(CASE
-				 WHEN st."Status"  = 'NR' THEN st."Call Date and Time"
-			 END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'NR' THEN st."Call Date and Time"
-			 END), MAX(CASE
-				 WHEN st."Status"  = 'NR' THEN st."Call Date and Time"
-			 END)), 24), ' hours') AS "NR Duration",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, c."Lead Create Time", MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time"
-			 END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, c."Lead Create Time", MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time"
-			 END)), 24), ' hours') AS "Waiting Details Time",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time"
-			 END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time"
-			 END)), 24), ' hours') AS "Waiting Diagnosis Time",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time"
-			 END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time"
-			 END)), 24), ' hours') AS "More Details Time",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE
-				 WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time"
-			 END)), MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE
-				 WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time"
-			 END)), MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END)), 24), ' hours') AS "Negotiation Time",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time"
-			 END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time"
-			 END)), 24), ' hours') AS "Decision Pending Time",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE
-				 WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END)), MIN(CASE
-				 WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time"
-			 END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE
-				 WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END)), MIN(CASE
-				 WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time"
-			 END)), 24), ' hours') AS "Deposit Time",
-		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE
-				 WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END)), MIN(so."Created Time")) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE
-				 WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time"
-			 END), MIN(CASE
-				 WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"
-			 END)), MIN(so."Created Time")), 24), ' hours') AS "Pre-Sold Time"
+         
+		 /* Total NR Count*/ 
+         SUM(CASE WHEN st."Status"  = 'NR' THEN 1 ELSE 0 END) AS "Total NR Count (Divided)",
+		 
+         /* NR Duration*/ 
+         FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END), MAX(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END)) / 24) AS "NR Duration Days",
+         TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END), MAX(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END)) AS "NR Duration Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END), MAX(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END), MAX(CASE WHEN st."Status"  = 'NR' THEN st."Call Date and Time" END)), 24), ' hours') AS "NR Duration Time",
+		 
+         /* Waiting Details*/ 
+         FLOOR(TIMESTAMPDIFF(HOUR, c."Lead Create Time", MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END)) / 24) AS "Waiting Details Days",
+		 TIMESTAMPDIFF(HOUR, c."Lead Create Time", MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END)) AS "Waiting Details Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, c."Lead Create Time", MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, c."Lead Create Time", MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END)), 24), ' hours') AS "Waiting Details Time",
+		 
+         /* Waiting Diagnosis*/
+         FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)) / 24) AS "Waiting Diagnosis Days",
+		 TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)) AS "Waiting Diagnosis Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Details' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)), 24), ' hours') AS "Waiting Diagnosis Time",
+		 
+         /* More Details*/ 
+         FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END)) / 24) AS "More Details Days",
+		 TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END)) AS "More Details Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END)), 24), ' hours') AS "More Details Time",
+		 
+         /* Negotiation*/ 
+         FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)) / 24) AS "Negotiation Days",
+		 TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)) AS "Negotiation Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'More Details Needed' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Waiting For Diagnosis' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), 24), ' hours') AS "Negotiation Time",
+		 
+         /* Decision Pending*/ 
+         FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END)) / 24) AS "Decision Pending Days",
+		 TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END)) AS "Decision Pending Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END)), 24), ' hours') AS "Decision Pending Time",
+
+         /* COALESCE: Return the first non-Null value */
+         /* Deposit Received*/
+         FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END)) / 24) AS "Deposit Days",
+		 TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END)) AS "Deposit Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END)) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Decision Pending' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END)), 24), ' hours') AS "Deposit Time",
+		 
+         /* Pre-Sold*/ 
+         FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), MIN(so."Created Time")) / 24) AS "Pre-Sold Days",
+		 TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), MIN(so."Created Time")) AS "Pre-Sold Hours",
+		 CONCAT(FLOOR(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time" END)), MIN(so."Created Time")) / 24), ' days ', MOD(TIMESTAMPDIFF(HOUR, COALESCE(MIN(CASE WHEN st."Status"  = 'Deposit Received' THEN st."Call Date and Time" END), MIN(CASE WHEN st."Status"  = 'Negotiation' THEN st."Call Date and Time"END)), MIN(so."Created Time")), 24), ' hours') AS "Pre-Sold Time"
+             
 FROM  "Contacts" c
 LEFT JOIN "Sales Tracking" st ON st."Parent ID"  = c."Id"
 	 AND	st."Sales Name"  = c."First Owner Assigned" 
 LEFT JOIN "Sales Orders(1)" so ON so."Zoho ID"  = c."Patient ID"  
+
 WHERE	 c."First Owner Assigned"  IS NOT NULL
-GROUP BY c."Patient ID",
-	 c."First Owner Assigned",
-	 c."Stage",
-	  c."Lead Create Time" 
+GROUP BY c."Patient ID", c."First Owner Assigned", c."Stage", c."Lead Create Time" 
 ORDER BY c."Lead Create Time" DESC 
